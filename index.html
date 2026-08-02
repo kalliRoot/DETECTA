@@ -385,274 +385,276 @@
         }
 
         // ============================================================
-        //  5. DESENHAR LINHAS NO ROSTO (COMPLETO + RESPONSIVO)
-        //  ============================================================
-        function desenharLinhasForenses(landmarks, width, height, porcentagem) {
-            if (!landmarks || landmarks.length === 0) return 0;
+        // // ============================================================
+//  DESENHO DELICADO E LIMPO (ESTILO FORENSE)
+//  ============================================================
+function desenharLinhasForenses(landmarks, width, height, porcentagem) {
+    if (!landmarks || landmarks.length === 0) return 0;
 
-            // Ajusta para qualquer tamanho de tela
-            const scaleX = width;
-            const scaleY = height;
-            let totalPontos = 0;
+    const scaleX = width;
+    const scaleY = height;
+    let totalPontos = 0;
 
-            // Define cores baseadas na porcentagem
-            const r = Math.round(255 * (1 - porcentagem / 100));
-            const g = Math.round(255 * (porcentagem / 100));
-            const b = 60;
-            const corBase = `rgba(${r}, ${g}, ${b}, 0.7)`;
-            const corBrilho = `rgba(${r}, ${g}, ${b}, 0.2)`;
-            const corOlhos = `rgba(0, 255, 255, 0.9)`;
-            const corBoca = `rgba(255, 100, 150, 0.8)`;
-            const corSobrancelhas = `rgba(255, 200, 50, 0.8)`;
+    // Cores suaves baseadas na porcentagem (transição suave)
+    const r = Math.round(180 * (1 - porcentagem / 100) + 40);
+    const g = Math.round(180 * (porcentagem / 100) + 40);
+    const b = 80;
+    const corBase = `rgba(${r}, ${g}, ${b}, 0.55)`;
+    const corBrilho = `rgba(${r}, ${g}, ${b}, 0.15)`;
 
-            // ============================================================
-            //  5.1. CONTORNO COMPLETO DO ROSTO
-            //  ============================================================
-            const indicesRosto = [];
-            for (let i = 0; i < 468; i++) {
-                indicesRosto.push(i);
-            }
+    const corOlhos = `rgba(0, 200, 255, 0.5)`;
+    const corBoca = `rgba(255, 120, 160, 0.5)`;
+    const corSobrancelhas = `rgba(255, 200, 80, 0.5)`;
 
-            const coordsRosto = [];
-            for (const idx of indicesRosto) {
-                const lm = landmarks[idx];
-                if (lm) {
-                    coordsRosto.push({
-                        x: lm.x * scaleX,
-                        y: lm.y * scaleY
-                    });
-                }
-            }
+    // ============================================================
+    //  1. CONTORNO DO ROSTO (DELICADO)
+    //  ============================================================
+    const indicesRosto = [];
+    for (let i = 0; i < 468; i++) {
+        indicesRosto.push(i);
+    }
 
-            if (coordsRosto.length > 0) {
-                ctx.beginPath();
-                for (let i = 0; i < coordsRosto.length; i++) {
-                    const p = coordsRosto[i];
-                    if (i === 0) {
-                        ctx.moveTo(p.x, p.y);
-                    } else {
-                        ctx.lineTo(p.x, p.y);
-                    }
-                }
-                ctx.closePath();
-                ctx.strokeStyle = corBase;
-                ctx.lineWidth = 1.2;
-                ctx.shadowColor = corBase;
-                ctx.shadowBlur = 8;
-                ctx.stroke();
-
-                ctx.beginPath();
-                for (let i = 0; i < coordsRosto.length; i++) {
-                    const p = coordsRosto[i];
-                    if (i === 0) {
-                        ctx.moveTo(p.x, p.y);
-                    } else {
-                        ctx.lineTo(p.x, p.y);
-                    }
-                }
-                ctx.closePath();
-                ctx.strokeStyle = corBrilho;
-                ctx.lineWidth = 4;
-                ctx.shadowBlur = 20;
-                ctx.stroke();
-
-                totalPontos += coordsRosto.length;
-            }
-
-            // ============================================================
-            //  5.2. SOBRANCELHAS
-            //  ============================================================
-            const indicesSobrancelhas = [
-                55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65,
-                285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295
-            ];
-
-            const coordsSobrancelhas = [];
-            for (const idx of indicesSobrancelhas) {
-                const lm = landmarks[idx];
-                if (lm) {
-                    coordsSobrancelhas.push({
-                        x: lm.x * scaleX,
-                        y: lm.y * scaleY
-                    });
-                }
-            }
-
-            if (coordsSobrancelhas.length > 0) {
-                ctx.beginPath();
-                for (let i = 0; i < coordsSobrancelhas.length; i++) {
-                    const p = coordsSobrancelhas[i];
-                    if (i === 0) {
-                        ctx.moveTo(p.x, p.y);
-                    } else {
-                        ctx.lineTo(p.x, p.y);
-                    }
-                }
-                ctx.strokeStyle = corSobrancelhas;
-                ctx.lineWidth = 2.5;
-                ctx.shadowColor = corSobrancelhas;
-                ctx.shadowBlur = 12;
-                ctx.stroke();
-
-                ctx.beginPath();
-                for (let i = 0; i < coordsSobrancelhas.length; i++) {
-                    const p = coordsSobrancelhas[i];
-                    if (i === 0) {
-                        ctx.moveTo(p.x, p.y);
-                    } else {
-                        ctx.lineTo(p.x, p.y);
-                    }
-                }
-                ctx.strokeStyle = `rgba(255, 200, 50, 0.15)`;
-                ctx.lineWidth = 6;
-                ctx.shadowBlur = 25;
-                ctx.stroke();
-
-                totalPontos += coordsSobrancelhas.length;
-            }
-
-            // ============================================================
-            //  5.3. OLHOS
-            //  ============================================================
-            const indicesOlhos = [
-                33, 133, 362, 263
-            ];
-
-            const coordsOlhos = [];
-            for (const idx of indicesOlhos) {
-                const lm = landmarks[idx];
-                if (lm) {
-                    coordsOlhos.push({
-                        x: lm.x * scaleX,
-                        y: lm.y * scaleY
-                    });
-                }
-            }
-
-            if (coordsOlhos.length > 0) {
-                ctx.beginPath();
-                for (let i = 0; i < coordsOlhos.length; i++) {
-                    const p = coordsOlhos[i];
-                    if (i === 0) {
-                        ctx.moveTo(p.x, p.y);
-                    } else {
-                        ctx.lineTo(p.x, p.y);
-                    }
-                }
-                ctx.strokeStyle = corOlhos;
-                ctx.lineWidth = 2;
-                ctx.shadowColor = corOlhos;
-                ctx.shadowBlur = 15;
-                ctx.stroke();
-
-                ctx.beginPath();
-                for (let i = 0; i < coordsOlhos.length; i++) {
-                    const p = coordsOlhos[i];
-                    if (i === 0) {
-                        ctx.moveTo(p.x, p.y);
-                    } else {
-                        ctx.lineTo(p.x, p.y);
-                    }
-                }
-                ctx.strokeStyle = `rgba(0, 255, 255, 0.15)`;
-                ctx.lineWidth = 5;
-                ctx.shadowBlur = 30;
-                ctx.stroke();
-
-                totalPontos += coordsOlhos.length;
-            }
-
-            // ============================================================
-            //  5.4. BOCA
-            //  ============================================================
-            const indicesBoca = [61, 291];
-
-            const coordsBoca = [];
-            for (const idx of indicesBoca) {
-                const lm = landmarks[idx];
-                if (lm) {
-                    coordsBoca.push({
-                        x: lm.x * scaleX,
-                        y: lm.y * scaleY
-                    });
-                }
-            }
-
-            if (coordsBoca.length > 0) {
-                ctx.beginPath();
-                for (let i = 0; i < coordsBoca.length; i++) {
-                    const p = coordsBoca[i];
-                    if (i === 0) {
-                        ctx.moveTo(p.x, p.y);
-                    } else {
-                        ctx.lineTo(p.x, p.y);
-                    }
-                }
-                ctx.closePath();
-                ctx.strokeStyle = corBoca;
-                ctx.lineWidth = 2;
-                ctx.shadowColor = corBoca;
-                ctx.shadowBlur = 15;
-                ctx.stroke();
-
-                ctx.beginPath();
-                for (let i = 0; i < coordsBoca.length; i++) {
-                    const p = coordsBoca[i];
-                    if (i === 0) {
-                        ctx.moveTo(p.x, p.y);
-                    } else {
-                        ctx.lineTo(p.x, p.y);
-                    }
-                }
-                ctx.closePath();
-                ctx.strokeStyle = `rgba(255, 100, 150, 0.15)`;
-                ctx.lineWidth = 5;
-                ctx.shadowBlur = 30;
-                ctx.stroke();
-
-                totalPontos += coordsBoca.length;
-            }
-
-            // ============================================================
-            //  5.5. NARIZ
-            //  ============================================================
-            const indicesNariz = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
-                27,
-                28, 29, 30, 31, 32
-            ];
-
-            const coordsNariz = [];
-            for (const idx of indicesNariz) {
-                const lm = landmarks[idx];
-                if (lm) {
-                    coordsNariz.push({
-                        x: lm.x * scaleX,
-                        y: lm.y * scaleY
-                    });
-                }
-            }
-
-            if (coordsNariz.length > 0) {
-                ctx.beginPath();
-                for (let i = 0; i < coordsNariz.length; i++) {
-                    const p = coordsNariz[i];
-                    if (i === 0) {
-                        ctx.moveTo(p.x, p.y);
-                    } else {
-                        ctx.lineTo(p.x, p.y);
-                    }
-                }
-                ctx.strokeStyle = `rgba(200, 200, 200, 0.5)`;
-                ctx.lineWidth = 1.5;
-                ctx.shadowBlur = 8;
-                ctx.stroke();
-
-                totalPontos += coordsNariz.length;
-            }
-
-            return totalPontos;
+    const coordsRosto = [];
+    for (const idx of indicesRosto) {
+        const lm = landmarks[idx];
+        if (lm) {
+            coordsRosto.push({
+                x: lm.x * scaleX,
+                y: lm.y * scaleY
+            });
         }
+    }
 
+    if (coordsRosto.length > 0) {
+        // Linha principal (fina)
+        ctx.beginPath();
+        for (let i = 0; i < coordsRosto.length; i++) {
+            const p = coordsRosto[i];
+            if (i === 0) {
+                ctx.moveTo(p.x, p.y);
+            } else {
+                ctx.lineTo(p.x, p.y);
+            }
+        }
+        ctx.closePath();
+        ctx.strokeStyle = corBase;
+        ctx.lineWidth = 1.2;
+        ctx.shadowColor = corBase;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+
+        // Brilho suave
+        ctx.beginPath();
+        for (let i = 0; i < coordsRosto.length; i++) {
+            const p = coordsRosto[i];
+            if (i === 0) {
+                ctx.moveTo(p.x, p.y);
+            } else {
+                ctx.lineTo(p.x, p.y);
+            }
+        }
+        ctx.closePath();
+        ctx.strokeStyle = corBrilho;
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 15;
+        ctx.stroke();
+
+        totalPontos += coordsRosto.length;
+    }
+
+    // ============================================================
+    //  2. SOBRANCELHAS (DELICADAS)
+    //  ============================================================
+    const indicesSobrancelhas = [
+        55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65,
+        285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295
+    ];
+
+    const coordsSobrancelhas = [];
+    for (const idx of indicesSobrancelhas) {
+        const lm = landmarks[idx];
+        if (lm) {
+            coordsSobrancelhas.push({
+                x: lm.x * scaleX,
+                y: lm.y * scaleY
+            });
+        }
+    }
+
+    if (coordsSobrancelhas.length > 0) {
+        ctx.beginPath();
+        for (let i = 0; i < coordsSobrancelhas.length; i++) {
+            const p = coordsSobrancelhas[i];
+            if (i === 0) {
+                ctx.moveTo(p.x, p.y);
+            } else {
+                ctx.lineTo(p.x, p.y);
+            }
+        }
+        ctx.strokeStyle = corSobrancelhas;
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = corSobrancelhas;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+
+        // Brilho suave
+        ctx.beginPath();
+        for (let i = 0; i < coordsSobrancelhas.length; i++) {
+            const p = coordsSobrancelhas[i];
+            if (i === 0) {
+                ctx.moveTo(p.x, p.y);
+            } else {
+                ctx.lineTo(p.x, p.y);
+            }
+        }
+        ctx.strokeStyle = `rgba(255, 200, 80, 0.1)`;
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+
+        totalPontos += coordsSobrancelhas.length;
+    }
+
+    // ============================================================
+    //  3. OLHOS (DELICADOS)
+    //  ============================================================
+    const indicesOlhos = [
+        33, 133, 362, 263
+    ];
+
+    const coordsOlhos = [];
+    for (const idx of indicesOlhos) {
+        const lm = landmarks[idx];
+        if (lm) {
+            coordsOlhos.push({
+                x: lm.x * scaleX,
+                y: lm.y * scaleY
+            });
+        }
+    }
+
+    if (coordsOlhos.length > 0) {
+        ctx.beginPath();
+        for (let i = 0; i < coordsOlhos.length; i++) {
+            const p = coordsOlhos[i];
+            if (i === 0) {
+                ctx.moveTo(p.x, p.y);
+            } else {
+                ctx.lineTo(p.x, p.y);
+            }
+        }
+        ctx.strokeStyle = corOlhos;
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = corOlhos;
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+
+        // Brilho suave
+        ctx.beginPath();
+        for (let i = 0; i < coordsOlhos.length; i++) {
+            const p = coordsOlhos[i];
+            if (i === 0) {
+                ctx.moveTo(p.x, p.y);
+            } else {
+                ctx.lineTo(p.x, p.y);
+            }
+        }
+        ctx.strokeStyle = `rgba(0, 200, 255, 0.1)`;
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 12;
+        ctx.stroke();
+
+        totalPontos += coordsOlhos.length;
+    }
+
+    // ============================================================
+    //  4. BOCA (DELICADA)
+    //  ============================================================
+    const indicesBoca = [61, 291];
+
+    const coordsBoca = [];
+    for (const idx of indicesBoca) {
+        const lm = landmarks[idx];
+        if (lm) {
+            coordsBoca.push({
+                x: lm.x * scaleX,
+                y: lm.y * scaleY
+            });
+        }
+    }
+
+    if (coordsBoca.length > 0) {
+        ctx.beginPath();
+        for (let i = 0; i < coordsBoca.length; i++) {
+            const p = coordsBoca[i];
+            if (i === 0) {
+                ctx.moveTo(p.x, p.y);
+            } else {
+                ctx.lineTo(p.x, p.y);
+            }
+        }
+        ctx.strokeStyle = corBoca;
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = corBoca;
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+
+        // Brilho suave
+        ctx.beginPath();
+        for (let i = 0; i < coordsBoca.length; i++) {
+            const p = coordsBoca[i];
+            if (i === 0) {
+                ctx.moveTo(p.x, p.y);
+            } else {
+                ctx.lineTo(p.x, p.y);
+            }
+        }
+        ctx.strokeStyle = `rgba(255, 120, 160, 0.1)`;
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 12;
+        ctx.stroke();
+
+        totalPontos += coordsBoca.length;
+    }
+
+    // ============================================================
+    //  5. NARIZ (DELICADO, SEM EXAGEROS)
+    //  ============================================================
+    const indicesNariz = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+        28, 29, 30, 31, 32
+    ];
+
+    const coordsNariz = [];
+    for (const idx of indicesNariz) {
+        const lm = landmarks[idx];
+        if (lm) {
+            coordsNariz.push({
+                x: lm.x * scaleX,
+                y: lm.y * scaleY
+            });
+        }
+    }
+
+    if (coordsNariz.length > 0) {
+        ctx.beginPath();
+        for (let i = 0; i < coordsNariz.length; i++) {
+            const p = coordsNariz[i];
+            if (i === 0) {
+                ctx.moveTo(p.x, p.y);
+            } else {
+                ctx.lineTo(p.x, p.y);
+            }
+        }
+        ctx.strokeStyle = `rgba(200, 200, 200, 0.3)`;
+        ctx.lineWidth = 1.0;
+        ctx.shadowBlur = 4;
+        ctx.stroke();
+
+        totalPontos += coordsNariz.length;
+    }
+
+    return totalPontos;
+}
         // ============================================================
         //  6. DETECTAR PISCADA
         //  ============================================================
