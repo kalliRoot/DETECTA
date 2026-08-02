@@ -3,92 +3,173 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DETECTA — 68 Pontos (Estilo Foto 2)</title>
+    <title>DETECTA — Scanner Biométrico</title>
 
-    <!-- Importando a versão clássica e estável do MediaPipe -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous">
-    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <!-- MediaPipe (versão clássica e estável) -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 
     <style>
-        /* ============================================================
-           ESTILO FORENSE / CSI
-           ============================================================ */
+        :root{
+            --cyan: #00ffcc;
+            --cyan-dim: rgba(0,255,204,0.25);
+            --red: #ff3366;
+            --amber: #ffcc44;
+            --bg: #07090a;
+            --panel: #0e1213;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #0a0a0a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Courier New', monospace;
-            padding: 20px;
+            background: radial-gradient(ellipse at 50% 0%, #0e1616 0%, #07090a 55%, #050606 100%);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            padding: 20px; color: #cfe; letter-spacing: 0.3px;
         }
         .container {
-            background: #111;
-            border: 1px solid #00ffcc44;
-            border-radius: 16px;
-            padding: 20px;
-            max-width: 900px;
-            width: 100%;
-            box-shadow: 0 0 60px rgba(0, 255, 200, 0.05);
+            background: linear-gradient(180deg, #101615 0%, #0a0e0d 100%);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 18px;
+            padding: 22px;
+            max-width: 900px; width: 100%;
+            box-shadow: 0 0 80px rgba(0,255,200,0.06), inset 0 0 60px rgba(0,255,200,0.02);
+            position: relative;
         }
+        .container::before{
+            content:""; position:absolute; inset:0; border-radius:18px; pointer-events:none;
+            background: repeating-linear-gradient(0deg, rgba(0,255,204,0.015) 0px, rgba(0,255,204,0.015) 1px, transparent 1px, transparent 3px);
+        }
+
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #00ffcc33;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--cyan-dim); padding-bottom: 12px; margin-bottom: 16px;
         }
-        .header h1 { color: #00ffcc; font-size: 18px; letter-spacing: 3px; text-transform: uppercase; font-weight: 300; }
-        .header .badge { color: #ff3366; font-size: 12px; border: 1px solid #ff336644; padding: 4px 12px; border-radius: 20px; letter-spacing: 1px; }
-        .video-wrapper { position: relative; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid #00ffcc33; max-width: 640px; margin: 0 auto; aspect-ratio: 4 / 3; }
-        #webcam { width: 100%; height: 100%; display: block; object-fit: cover; transform: scaleX(-1); background: #000; }
+        .header h1 {
+            font-family: 'Orbitron', sans-serif; color: var(--cyan); font-size: 19px;
+            letter-spacing: 4px; text-transform: uppercase; font-weight: 700;
+            text-shadow: 0 0 18px rgba(0,255,204,0.5);
+        }
+        .header .sub { display:block; font-size:9px; color:#5c7d78; letter-spacing:2px; margin-top:3px; font-weight:400;}
+        .header .badge {
+            color: var(--red); font-size: 11px; border: 1px solid rgba(255,51,102,0.4);
+            padding: 5px 14px; border-radius: 20px; letter-spacing: 1.5px; font-family:'Orbitron',sans-serif;
+            box-shadow: 0 0 14px rgba(255,51,102,0.15);
+        }
+
+        .video-wrapper {
+            position: relative; border-radius: 14px; overflow: hidden; background: #000;
+            border: 1px solid var(--cyan-dim); max-width: 640px; margin: 0 auto;
+            aspect-ratio: 4 / 3;
+        }
+        #webcam { width: 100%; height: 100%; display: block; object-fit: cover; transform: scaleX(-1); background: #000; filter: contrast(1.05) saturate(0.9); }
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; transform: scaleX(-1); }
-        .audio-visualizer { max-width: 640px; margin: 10px auto 0; border-radius: 8px; overflow: hidden; background: #0a0a0a; border: 1px solid #00ffcc33; height: 50px; }
-        #audioCanvas { width: 100%; height: 100%; display: block; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
-        .stat-box { background: #1a1a1a; border: 1px solid #00ffcc33; border-radius: 8px; padding: 10px 12px; text-align: center; }
-        .stat-box .label { color: #8899aa; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
-        .stat-box .value { color: #00ffcc; font-size: 22px; font-weight: bold; margin-top: 4px; }
-        .stat-box .value.verde { color: #66ff99; }
-        .stat-box .value.vermelho { color: #ff3366; }
-        .stat-box .value.amarelo { color: #ffcc44; }
-        .controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 15px 0; }
-        .btn {
-            background: transparent; border: 1px solid #00ffcc; color: #00ffcc; padding: 10px 24px;
-            font-family: 'Courier New', monospace; font-size: 14px; letter-spacing: 2px; border-radius: 30px;
-            cursor: pointer; transition: 0.3s; text-transform: uppercase; min-width: 120px;
+
+        /* grid tático de fundo */
+        .tac-grid{
+            position:absolute; inset:0; pointer-events:none; opacity:0.35;
+            background-image:
+                linear-gradient(rgba(0,255,204,0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,204,0.06) 1px, transparent 1px);
+            background-size: 32px 32px;
         }
-        .btn:hover { background: #00ffcc22; box-shadow: 0 0 30px #00ffcc33; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn.vermelho { border-color: #ff3366; color: #ff3366; }
-        .btn.vermelho:hover { background: #ff336622; box-shadow: 0 0 30px #ff336633; }
-        .btn.amarelo { border-color: #ffcc44; color: #ffcc44; }
-        .btn.amarelo:hover { background: #ffcc4422; box-shadow: 0 0 30px #ffcc4433; }
-        .status-msg { text-align: center; font-size: 13px; color: #8899aa; letter-spacing: 1px; padding: 8px; border-top: 1px solid #00ffcc33; margin-top: 10px; }
+
+        /* cantos estilo mira */
+        .corner{ position:absolute; width:26px; height:26px; border-color: var(--cyan); opacity:0.85; pointer-events:none; z-index:3; }
+        .corner.tl{ top:8px; left:8px; border-top:2px solid var(--cyan); border-left:2px solid var(--cyan); }
+        .corner.tr{ top:8px; right:8px; border-top:2px solid var(--cyan); border-right:2px solid var(--cyan); }
+        .corner.bl{ bottom:8px; left:8px; border-bottom:2px solid var(--cyan); border-left:2px solid var(--cyan); }
+        .corner.br{ bottom:8px; right:8px; border-bottom:2px solid var(--cyan); border-right:2px solid var(--cyan); }
+
+        /* linha de varredura */
+        .scanline{
+            position:absolute; left:0; width:100%; height:2px;
+            background: linear-gradient(90deg, transparent, var(--cyan) 45%, var(--cyan) 55%, transparent);
+            box-shadow: 0 0 12px 2px var(--cyan);
+            opacity:0; pointer-events:none; z-index:3;
+        }
+        .scanline.ativo{ animation: varrer 2.6s linear infinite; opacity:0.8; }
+        @keyframes varrer{ 0%{ top:0%; } 100%{ top:100%; } }
+
+        .rec-indicator{
+            position:absolute; top:10px; right:10px; z-index:4; display:none; align-items:center; gap:6px;
+            background: rgba(0,0,0,0.55); border:1px solid rgba(255,51,102,0.5); border-radius:20px;
+            padding:4px 10px; font-size:10px; color:var(--red); letter-spacing:1.5px; font-family:'Orbitron',sans-serif;
+        }
+        .rec-indicator.ativo{ display:flex; }
+        .rec-indicator .dot{ width:7px; height:7px; border-radius:50%; background:var(--red); box-shadow:0 0 8px var(--red); animation: piscar 1s infinite; }
+        @keyframes piscar{ 0%,100%{opacity:1;} 50%{opacity:0.15;} }
+
+        .id-tag{
+            position:absolute; bottom:10px; left:10px; z-index:4; font-size:9px; color: var(--cyan);
+            opacity:0; background: rgba(0,0,0,0.5); padding:4px 8px; border-radius:6px; border:1px solid var(--cyan-dim);
+            font-family:'Orbitron', sans-serif; letter-spacing:1px; transition: opacity 0.3s;
+        }
+        .id-tag.ativo{ opacity:0.9; }
+
+        .audio-visualizer { max-width: 640px; margin: 12px auto 0; border-radius: 8px; overflow: hidden; background: #05070706; border: 1px solid var(--cyan-dim); height: 50px; }
+        #audioCanvas { width: 100%; height: 100%; display: block; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+        .stat-box {
+            background: linear-gradient(180deg, #141a19, #0c1010); border: 1px solid var(--cyan-dim);
+            border-radius: 10px; padding: 11px 10px; text-align: center; position:relative; overflow:hidden;
+        }
+        .stat-box::after{ content:""; position:absolute; top:0; left:0; width:100%; height:2px; background:var(--cyan); opacity:0.35; }
+        .stat-box .label { color: #7fa39c; font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; }
+        .stat-box .value { font-family:'Orbitron',sans-serif; color: var(--cyan); font-size: 21px; font-weight: 700; margin-top: 5px; text-shadow: 0 0 10px rgba(0,255,204,0.35); }
+        .stat-box .value.verde { color: #66ff99; text-shadow: 0 0 10px rgba(102,255,153,0.4); }
+        .stat-box .value.vermelho { color: var(--red); text-shadow: 0 0 10px rgba(255,51,102,0.4); }
+        .stat-box .value.amarelo { color: var(--amber); text-shadow: 0 0 10px rgba(255,204,68,0.4); }
+
+        .controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+        .btn {
+            background: transparent; border: 1px solid var(--cyan); color: var(--cyan); padding: 11px 26px;
+            font-family: 'Orbitron', sans-serif; font-size: 12px; letter-spacing: 2px; border-radius: 30px;
+            cursor: pointer; transition: 0.25s; text-transform: uppercase; min-width: 130px; font-weight:500;
+        }
+        .btn:hover:not(:disabled) { background: rgba(0,255,204,0.12); box-shadow: 0 0 30px rgba(0,255,204,0.25); transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .btn.vermelho { border-color: var(--red); color: var(--red); }
+        .btn.vermelho:hover:not(:disabled) { background: rgba(255,51,102,0.12); box-shadow: 0 0 30px rgba(255,51,102,0.25); }
+        .btn.amarelo { border-color: var(--amber); color: var(--amber); }
+        .btn.amarelo:hover:not(:disabled) { background: rgba(255,204,68,0.12); box-shadow: 0 0 30px rgba(255,204,68,0.25); }
+
+        .status-msg { text-align: center; font-size: 13px; color: #8899aa; letter-spacing: 1px; padding: 9px; border-top: 1px solid var(--cyan-dim); margin-top: 6px; }
         .status-msg.verde { color: #66ff99; }
-        .status-msg.vermelho { color: #ff3366; }
-        .status-msg.amarelo { color: #ffcc44; }
-        @media (max-width: 700px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .header h1 { font-size: 14px; } }
-        @media (max-width: 500px) { .stats-grid { grid-template-columns: 1fr 1fr; gap: 6px; } .stat-box .value { font-size: 18px; } .btn { font-size: 12px; padding: 8px 16px; min-width: 80px; } }
+        .status-msg.vermelho { color: var(--red); }
+        .status-msg.amarelo { color: var(--amber); }
+
+        .footer-note{ text-align:center; font-size: 9.5px; color:#4c635f; margin-top:8px; letter-spacing:0.5px; }
+
+        @media (max-width: 700px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } .header h1 { font-size: 14px; } }
+        @media (max-width: 500px) { .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; } .stat-box .value { font-size: 17px; } .btn { font-size: 11px; padding: 9px 16px; min-width: 90px; } }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <h1>🕵️ DETECTA — 68 PONTOS</h1>
-            <span class="badge">v2.0 · LIMPO</span>
+            <div>
+                <h1>🕵️ DETECTA</h1>
+                <span class="sub">SCANNER BIOMÉTRICO FACIAL · MALHA COMPLETA</span>
+            </div>
+            <span class="badge">v3.0 · PREMIUM</span>
         </div>
 
         <div class="video-wrapper">
             <video id="webcam" autoplay playsinline muted></video>
+            <div class="tac-grid"></div>
             <canvas id="overlay"></canvas>
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+            <div class="scanline" id="scanline"></div>
+            <div class="rec-indicator" id="recIndicator"><span class="dot"></span>ANALISANDO</div>
+            <div class="id-tag" id="idTag">FACE_ID · TRACKING</div>
         </div>
 
         <div class="audio-visualizer">
@@ -96,25 +177,32 @@
         </div>
 
         <div class="stats-grid">
-            <div class="stat-box"><div class="label">🎯 VERDADE</div><div class="value verde" id="porcentagem">--%</div></div>
-            <div class="stat-box"><div class="label">❌ MENTIRA</div><div class="value vermelho" id="mentira">--%</div></div>
-            <div class="stat-box"><div class="label">👁️ PISCADAS</div><div class="value amarelo" id="piscadas">0</div></div>
-            <div class="stat-box"><div class="label">⏱️ TEMPO</div><div class="value" id="tempo">00:00</div></div>
+            <div class="stat-box"><div class="label">🎯 Verdade</div><div class="value verde" id="porcentagem">--%</div></div>
+            <div class="stat-box"><div class="label">❌ Mentira</div><div class="value vermelho" id="mentira">--%</div></div>
+            <div class="stat-box"><div class="label">👁️ Piscadas</div><div class="value amarelo" id="piscadas">0</div></div>
+            <div class="stat-box"><div class="label">📈 Tensão facial</div><div class="value" id="tensao">--%</div></div>
+            <div class="stat-box"><div class="label">🫀 BPM (estimado)</div><div class="value" id="bpm">--</div></div>
+            <div class="stat-box"><div class="label">⏱️ Tempo</div><div class="value" id="tempo">00:00</div></div>
         </div>
 
         <div class="controls">
-            <button class="btn" id="btnIniciar">▶ INICIAR TESTE</button>
-            <button class="btn vermelho" id="btnEncerrar" disabled>⏹ ENCERRAR</button>
-            <button class="btn amarelo" id="btnRelatorio" disabled>📊 RELATÓRIO</button>
+            <button class="btn" id="btnIniciar">▶ Iniciar teste</button>
+            <button class="btn vermelho" id="btnEncerrar" disabled>⏹ Encerrar</button>
+            <button class="btn amarelo" id="btnRelatorio" disabled>📊 Relatório</button>
         </div>
 
-        <div class="status-msg amarelo" id="statusMsg">🔬 AGUARDANDO INÍCIO DA ANÁLISE</div>
+        <div class="status-msg amarelo" id="statusMsg">🔬 Aguardando início da análise</div>
+        <div class="footer-note">Brincadeira / entretenimento — não é um exame forense real.</div>
     </div>
 
     <script>
         // ============================================================
-        //  SISTEMA FORENSE - 68 PONTOS (ESTILO DA SEGUNDA FOTO - LIMPO E BRANCO)
-        //  ============================================================
+        //  DETECTA · SCANNER BIOMÉTRICO (VERSÃO PREMIUM)
+        //  Malha facial completa (468/478 pontos MediaPipe) com os
+        //  conjuntos oficiais de conexão (contorno, olhos, sobrancelhas,
+        //  boca e íris), em vez de recortar os 68 primeiros índices —
+        //  que ficavam concentrados na região dos olhos/nariz.
+        // ============================================================
 
         const video = document.getElementById('webcam');
         const overlay = document.getElementById('overlay');
@@ -125,8 +213,13 @@
         const spanPorcentagem = document.getElementById('porcentagem');
         const spanMentira = document.getElementById('mentira');
         const spanPiscadas = document.getElementById('piscadas');
+        const spanTensao = document.getElementById('tensao');
+        const spanBpm = document.getElementById('bpm');
         const spanTempo = document.getElementById('tempo');
         const statusMsg = document.getElementById('statusMsg');
+        const scanline = document.getElementById('scanline');
+        const recIndicator = document.getElementById('recIndicator');
+        const idTag = document.getElementById('idTag');
 
         const btnIniciar = document.getElementById('btnIniciar');
         const btnEncerrar = document.getElementById('btnEncerrar');
@@ -143,16 +236,26 @@
 
         let historico = [];
         let piscadas = 0;
-        let ultimoEstadoOlho = false;
+        let olhoFechadoAnterior = false;
         let tempoInicio = 0;
         let tempoDecorrido = 0;
+
+        // sinais suavizados (para não "pular" a cada frame e parecer mais real)
+        let sinalVerdade = 55;
+        let sinalTensao = 10;
+        let sinalBpm = 74;
+        let landmarksAnteriores = null;
+
+        // índices MediaPipe usados para o cálculo real de piscada (EAR)
+        const OLHO_ESQ = { topo: 159, base: 145, canto1: 33, canto2: 133 };
+        const OLHO_DIR = { topo: 386, base: 374, canto1: 362, canto2: 263 };
+        const LIMIAR_PISCADA = 0.18;
 
         function resizeCanvas() {
             const rect = overlay.parentElement.getBoundingClientRect();
             overlay.width = rect.width;
             overlay.height = rect.height;
         }
-
         function resizeAudioCanvas() {
             const rect = audioCanvas.parentElement.getBoundingClientRect();
             audioCanvas.width = rect.width;
@@ -160,103 +263,124 @@
         }
         window.addEventListener('resize', () => { resizeCanvas(); resizeAudioCanvas(); });
 
-        function calcularPorcentagem(volume) {
-            let base = Math.floor(Math.random() * 50) + 30;
-            if (volume > 0.6) base = Math.max(10, base - (volume * 30));
-            else if (volume < 0.2) base = Math.min(90, base + 20);
-            const variacao = Math.floor(Math.random() * 10) - 5;
-            return Math.min(95, Math.max(5, base + variacao));
-        }
-
         // ============================================================
-        //  FUNÇÃO DE DESENHO - ESTILO FOTO 2 (APENAS OS 68 PONTOS)
-        //  ============================================================
-        function desenharMalhaBranca(landmarks, width, height) {
+        //  DESENHO DA MALHA FACIAL COMPLETA (estilo scanner biométrico)
+        // ============================================================
+        function desenharMalhaPremium(landmarks) {
             if (!landmarks) return;
 
-            // 1. Ajustar coordenadas dos 68 pontos
-            const p = (i) => ({ x: landmarks[i].x * width, y: landmarks[i].y * height });
+            // 1) tesselação fina cobrindo o rosto inteiro (efeito "wireframe")
+            if (window.FACEMESH_TESSELATION) {
+                drawConnectors(ctx, landmarks, FACEMESH_TESSELATION, {
+                    color: 'rgba(0,255,204,0.16)',
+                    lineWidth: 0.6
+                });
+            }
 
-            // Cores (Branco com leve transparência para ficar igual à foto 2)
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            // 2) contornos principais em destaque (branco/ciano brilhante)
+            const contornoStyle = { color: 'rgba(255,255,255,0.9)', lineWidth: 1.4 };
+            const destaqueStyle = { color: 'rgba(0,255,204,0.95)', lineWidth: 1.6 };
+
+            if (window.FACEMESH_FACE_OVAL) drawConnectors(ctx, landmarks, FACEMESH_FACE_OVAL, contornoStyle);
+            if (window.FACEMESH_LEFT_EYEBROW) drawConnectors(ctx, landmarks, FACEMESH_LEFT_EYEBROW, destaqueStyle);
+            if (window.FACEMESH_RIGHT_EYEBROW) drawConnectors(ctx, landmarks, FACEMESH_RIGHT_EYEBROW, destaqueStyle);
+            if (window.FACEMESH_LEFT_EYE) drawConnectors(ctx, landmarks, FACEMESH_LEFT_EYE, destaqueStyle);
+            if (window.FACEMESH_RIGHT_EYE) drawConnectors(ctx, landmarks, FACEMESH_RIGHT_EYE, destaqueStyle);
+            if (window.FACEMESH_LIPS) drawConnectors(ctx, landmarks, FACEMESH_LIPS, contornoStyle);
+            if (window.FACEMESH_LEFT_IRIS) drawConnectors(ctx, landmarks, FACEMESH_LEFT_IRIS, { color: '#ffcc44', lineWidth: 1.4 });
+            if (window.FACEMESH_RIGHT_IRIS) drawConnectors(ctx, landmarks, FACEMESH_RIGHT_IRIS, { color: '#ffcc44', lineWidth: 1.4 });
+
+            // 3) ponte do nariz (não existe conector oficial pronto)
+            const w = overlay.width, h = overlay.height;
+            const p = (i) => ({ x: landmarks[i].x * w, y: landmarks[i].y * h });
+            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
             ctx.lineWidth = 1.2;
-            ctx.shadowColor = 'rgba(255, 255, 255, 0.2)';
-            ctx.shadowBlur = 3;
-
-            // Função para ligar vários pontos em linha
-            const conectar = (indices) => {
-                ctx.beginPath();
-                ctx.moveTo(p(indices[0]).x, p(indices[0]).y);
-                for(let i=1; i<indices.length; i++) ctx.lineTo(p(indices[i]).x, p(indices[i]).y);
-                ctx.stroke();
-            };
-
-            // Função para desenhar os pontinhos brancos
-            const pontos = (indices) => {
-                ctx.shadowBlur = 5;
-                ctx.fillStyle = '#ffffff';
-                for(let i of indices) {
-                    let pt = p(i);
-                    ctx.beginPath();
-                    ctx.arc(pt.x, pt.y, 2, 0, 2 * Math.PI);
-                    ctx.fill();
-                }
-                ctx.shadowBlur = 3;
-            };
-
-            // Índices oficiais dos 68 pontos faciais
-            const mandibula = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
-            const sobrancelhaE = [17,18,19,20,21];
-            const sobrancelhaD = [22,23,24,25,26];
-            const olhoE = [36,37,38,39,40,41];
-            const olhoD = [42,43,44,45,46,47];
-            const nariz = [27,28,29,30,31,32,33,34,35];
-            const bocaExt = [48,49,50,51,52,53,54,55,56,57,58,59];
-            const bocaInt = [60,61,62,63,64,65,66,67];
-
-            // Desenha os Contornos
-            conectar(mandibula);
-            conectar(sobrancelhaE);
-            conectar(sobrancelhaD);
-            conectar(olhoE);
-            conectar(olhoD);
-            conectar(nariz);
-            conectar(bocaExt);
-            conectar(bocaInt);
-
-            // Linha central do nariz (Ponto 27 ao 30) - É assim na foto 2
             ctx.beginPath();
-            ctx.moveTo(p(27).x, p(27).y);
-            ctx.lineTo(p(30).x, p(30).y);
+            ctx.moveTo(p(6).x, p(6).y);
+            ctx.lineTo(p(4).x, p(4).y);
             ctx.stroke();
 
-            // Desenha os pontinhos
-            pontos(mandibula);
-            pontos(sobrancelhaE);
-            pontos(sobrancelhaD);
-            pontos(olhoE);
-            pontos(olhoD);
-            pontos(nariz);
-            pontos(bocaExt);
-            pontos(bocaInt);
-
-            ctx.shadowBlur = 0; // Resetar para não afetar o frame seguinte
+            // 4) pontos de referência pulsantes em landmarks-chave
+            const pontosChave = [1, 4, 33, 133, 362, 263, 61, 291, 10, 152, 234, 454];
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0,255,204,0.9)';
+            ctx.shadowBlur = 6;
+            for (const i of pontosChave) {
+                const pt = p(i);
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 2.1, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            ctx.shadowBlur = 0;
         }
 
         // ============================================================
-        //  DETECÇÃO DE PISCADA (Baseado nos 68 pontos)
-        //  ============================================================
-        function detectarPiscada68(landmarks) {
-            if(!landmarks[37] || !landmarks[41] || !landmarks[43] || !landmarks[47]) return false;
-            // Distância vertical dos olhos
-            const distE = Math.abs(landmarks[37].y - landmarks[41].y);
-            const distD = Math.abs(landmarks[43].y - landmarks[47].y);
-            return (distE < 0.015 || distD < 0.015);
+        //  PISCADA — EAR (eye aspect ratio) real, não mais fixo/errado
+        // ============================================================
+        function calcularEAR(landmarks, olho) {
+            const topo = landmarks[olho.topo], base = landmarks[olho.base];
+            const c1 = landmarks[olho.canto1], c2 = landmarks[olho.canto2];
+            const vertical = Math.hypot(topo.x - base.x, topo.y - base.y);
+            const horizontal = Math.hypot(c1.x - c2.x, c1.y - c2.y);
+            if (horizontal === 0) return 1;
+            return vertical / horizontal;
+        }
+
+        function detectarPiscada(landmarks) {
+            const earEsq = calcularEAR(landmarks, OLHO_ESQ);
+            const earDir = calcularEAR(landmarks, OLHO_DIR);
+            const media = (earEsq + earDir) / 2;
+            return media < LIMIAR_PISCADA;
+        }
+
+        // ============================================================
+        //  "TENSÃO FACIAL" — baseada em movimento real dos landmarks
+        //  entre frames (quanto mais o rosto se mexe, maior o valor)
+        // ============================================================
+        function calcularMovimento(landmarksAtuais) {
+            if (!landmarksAnteriores) return 0;
+            let soma = 0;
+            const passo = 4; // amostra parte dos pontos por performance
+            let n = 0;
+            for (let i = 0; i < landmarksAtuais.length; i += passo) {
+                const a = landmarksAtuais[i], b = landmarksAnteriores[i];
+                if (!a || !b) continue;
+                soma += Math.hypot(a.x - b.x, a.y - b.y);
+                n++;
+            }
+            return n ? soma / n : 0;
+        }
+
+        // ============================================================
+        //  SINAIS "BIOMÉTRICOS" SUAVIZADOS (efeito de leitura real)
+        // ============================================================
+        function atualizarSinais(volume, movimento, piscouAgora) {
+            sinalTensao += ((movimento * 4000) - sinalTensao) * 0.12;
+            sinalTensao = Math.min(100, Math.max(0, sinalTensao));
+
+            let alvoVerdade = 52 + (Math.sin(Date.now() / 4000) * 8);
+            if (volume > 0.55) alvoVerdade -= volume * 22;
+            if (sinalTensao > 45) alvoVerdade -= (sinalTensao - 45) * 0.5;
+            if (piscouAgora) alvoVerdade -= 4;
+            if (volume < 0.12 && sinalTensao < 20) alvoVerdade += 14;
+            alvoVerdade += (Math.random() * 6 - 3);
+            alvoVerdade = Math.min(96, Math.max(4, alvoVerdade));
+            sinalVerdade += (alvoVerdade - sinalVerdade) * 0.07;
+
+            const alvoBpm = 70 + volume * 30 + sinalTensao * 0.15;
+            sinalBpm += (alvoBpm - sinalBpm) * 0.04;
+
+            return {
+                verdade: sinalVerdade,
+                mentira: 100 - sinalVerdade,
+                tensao: sinalTensao,
+                bpm: sinalBpm
+            };
         }
 
         // ============================================================
         //  PROCESSADOR DO MEDIAPIPE (FACE MESH)
-        //  ============================================================
+        // ============================================================
         function onResults(results) {
             if (!testando) return;
 
@@ -265,8 +389,7 @@
             ctx.clearRect(0, 0, width, height);
 
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-                // O FaceMesh retorna 468 pontos, mas os 68 primeiros são os que queremos
-                const landmarks = results.multiFaceLandmarks[0].slice(0, 68);
+                const landmarks = results.multiFaceLandmarks[0];
 
                 let volume = 0;
                 if (analyser && dataArray) {
@@ -276,37 +399,43 @@
                     volume = (soma / dataArray.length) / 255;
                 }
 
-                const pct = calcularPorcentagem(volume);
-                const mentiraPct = 100 - pct;
-                spanPorcentagem.textContent = Math.round(pct) + '%';
-                spanMentira.textContent = Math.round(mentiraPct) + '%';
-
-                const fechado = detectarPiscada68(landmarks);
-                if (fechado && !ultimoEstadoOlho) {
+                const piscouAgora = detectarPiscada(landmarks);
+                if (piscouAgora && !olhoFechadoAnterior) {
                     piscadas++;
                     spanPiscadas.textContent = piscadas;
                 }
-                ultimoEstadoOlho = fechado;
+                olhoFechadoAnterior = piscouAgora;
 
-                // DESENHA O ESTILO DA FOTO 2 (LIMPO E BRANCO)
-                desenharMalhaBranca(landmarks, width, height);
+                const movimento = calcularMovimento(landmarks);
+                landmarksAnteriores = landmarks;
+
+                const sinais = atualizarSinais(volume, movimento, piscouAgora);
+                spanPorcentagem.textContent = Math.round(sinais.verdade) + '%';
+                spanMentira.textContent = Math.round(sinais.mentira) + '%';
+                spanTensao.textContent = Math.round(sinais.tensao) + '%';
+                spanBpm.textContent = Math.round(sinais.bpm);
+
+                desenharMalhaPremium(landmarks);
+                idTag.classList.add('ativo');
 
                 historico.push({
                     tempo: Date.now() - tempoInicio,
-                    verdade: pct,
-                    mentira: mentiraPct,
+                    verdade: sinais.verdade,
+                    mentira: sinais.mentira,
+                    tensao: sinais.tensao,
+                    bpm: sinais.bpm,
                     volume: volume,
                     piscadas: piscadas
                 });
 
-                if (pct > 70) {
-                    statusMsg.textContent = '✅ ALTA PROBABILIDADE DE VERDADE';
+                if (sinais.verdade > 68) {
+                    statusMsg.textContent = '✅ Alta probabilidade de verdade';
                     statusMsg.className = 'status-msg verde';
-                } else if (pct < 35) {
-                    statusMsg.textContent = '⚠️ ALTA PROBABILIDADE DE MENTIRA';
+                } else if (sinais.verdade < 35) {
+                    statusMsg.textContent = '⚠️ Alta probabilidade de mentira';
                     statusMsg.className = 'status-msg vermelho';
                 } else {
-                    statusMsg.textContent = '🔍 ANÁLISE INCONCLUSIVA';
+                    statusMsg.textContent = '🔍 Análise inconclusiva';
                     statusMsg.className = 'status-msg amarelo';
                 }
 
@@ -316,14 +445,15 @@
                 spanTempo.textContent = `${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
 
             } else {
-                statusMsg.textContent = '👤 NENHUM ROSTO DETECTADO';
+                idTag.classList.remove('ativo');
+                statusMsg.textContent = '👤 Nenhum rosto detectado';
                 statusMsg.className = 'status-msg amarelo';
             }
         }
 
         // ============================================================
         //  ÁUDIO
-        //  ============================================================
+        // ============================================================
         function desenharAudio() {
             const width = audioCanvas.width;
             const height = audioCanvas.height;
@@ -346,12 +476,10 @@
             const r = Math.round(255 * (1 - pct / 100));
             const g = Math.round(255 * (pct / 100));
             const b = 60;
-            const cor = `rgba(${r}, ${g}, ${b}, 0.8)`;
-            const corBrilho = `rgba(${r}, ${g}, ${b}, 0.2)`;
+            const cor = `rgba(${r}, ${g}, ${b}, 0.85)`;
 
             ctxAudio.beginPath();
             const step = Math.max(1, Math.floor(dataArray.length / width));
-
             for (let i = 0; i < width; i++) {
                 const index = Math.min(i * step, dataArray.length - 1);
                 const valor = dataArray[index] / 255;
@@ -369,8 +497,9 @@
             for (let i = 0; i < dataArray.length; i++) soma += dataArray[i];
             const vol = Math.round((soma / dataArray.length) / 255 * 100);
 
-            ctxAudio.fillStyle = 'rgba(0, 255, 200, 0.2)';
-            ctxAudio.font = '9px Courier New';
+            ctxAudio.shadowBlur = 0;
+            ctxAudio.fillStyle = 'rgba(0, 255, 200, 0.35)';
+            ctxAudio.font = '9px "Share Tech Mono", monospace';
             ctxAudio.fillText(`VOL: ${vol}%`, 6, 14);
             ctxAudio.textAlign = 'right';
             ctxAudio.fillText(`VERDADE: ${spanPorcentagem.textContent}`, width - 6, 14);
@@ -381,7 +510,7 @@
 
         // ============================================================
         //  INICIAR
-        //  ============================================================
+        // ============================================================
         async function iniciarAnalise() {
             if (testando) return;
 
@@ -390,7 +519,11 @@
                 piscadas = 0;
                 tempoInicio = Date.now();
                 spanPiscadas.textContent = '0';
-                ultimoEstadoOlho = false;
+                olhoFechadoAnterior = false;
+                landmarksAnteriores = null;
+                sinalVerdade = 55;
+                sinalTensao = 10;
+                sinalBpm = 74;
 
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
@@ -402,7 +535,7 @@
                 resizeCanvas();
                 resizeAudioCanvas();
 
-                audioContext = new(window.AudioContext || window.webkitAudioContext)();
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioContext.state === 'suspended') await audioContext.resume();
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 512;
@@ -410,14 +543,13 @@
                 source.connect(analyser);
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-                // INICIALIZA O FACEMESH (MUITO MAIS ESTÁVEL)
                 faceMesh = new FaceMesh({
                     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
                 });
 
                 faceMesh.setOptions({
                     maxNumFaces: 1,
-                    refineLandmarks: true,
+                    refineLandmarks: true, // habilita pontos de íris (mesh 478 pontos)
                     minDetectionConfidence: 0.5,
                     minTrackingConfidence: 0.5
                 });
@@ -426,7 +558,7 @@
 
                 camera = new Camera(video, {
                     onFrame: async () => {
-                        try { await faceMesh.send({image: video}); } catch (e) {}
+                        try { await faceMesh.send({ image: video }); } catch (e) {}
                     },
                     width: 640,
                     height: 480
@@ -437,17 +569,19 @@
                 btnIniciar.disabled = true;
                 btnEncerrar.disabled = false;
                 btnRelatorio.disabled = true;
-                statusMsg.textContent = '🔬 ANALISANDO...';
+                statusMsg.textContent = '🔬 Analisando...';
                 statusMsg.className = 'status-msg amarelo';
+                scanline.classList.add('ativo');
+                recIndicator.classList.add('ativo');
 
                 if (audioAnimId) cancelAnimationFrame(audioAnimId);
                 desenharAudio();
 
-                console.log('✅ Análise 68 Pontos iniciada!');
+                console.log('✅ Scanner iniciado — malha facial completa ativa.');
 
             } catch (err) {
                 console.error('❌ Erro:', err);
-                statusMsg.textContent = '❌ ERRO: ' + err.message;
+                statusMsg.textContent = '❌ Erro: ' + err.message;
                 statusMsg.className = 'status-msg vermelho';
                 btnIniciar.disabled = false;
                 liberarRecursos();
@@ -456,14 +590,17 @@
 
         // ============================================================
         //  ENCERRAR E RELATÓRIO
-        //  ============================================================
+        // ============================================================
         function encerrarAnalise() {
             testando = false;
             btnEncerrar.disabled = true;
             btnRelatorio.disabled = false;
             btnIniciar.disabled = true;
-            statusMsg.textContent = '⏹ ANÁLISE ENCERRADA.';
+            statusMsg.textContent = '⏹ Análise encerrada.';
             statusMsg.className = 'status-msg amarelo';
+            scanline.classList.remove('ativo');
+            recIndicator.classList.remove('ativo');
+            idTag.classList.remove('ativo');
             if (audioAnimId) { cancelAnimationFrame(audioAnimId); audioAnimId = null; }
             ctx.clearRect(0, 0, overlay.width, overlay.height);
             liberarRecursos();
@@ -479,32 +616,39 @@
 
         function gerarRelatorio() {
             if (historico.length === 0) { alert('Nenhum dado coletado.'); return; }
-            let somaVerdade = 0, somaMentira = 0, picoMentira = 0, picoVerdade = 0;
+            let somaVerdade = 0, somaMentira = 0, somaTensao = 0, somaBpm = 0, picoMentira = 0, picoVerdade = 0;
             for (const item of historico) {
                 somaVerdade += item.verdade; somaMentira += item.mentira;
+                somaTensao += item.tensao; somaBpm += item.bpm;
                 if (item.mentira > picoMentira) picoMentira = item.mentira;
                 if (item.verdade > picoVerdade) picoVerdade = item.verdade;
             }
             const mediaVerdade = somaVerdade / historico.length;
             const mediaMentira = somaMentira / historico.length;
+            const mediaTensao = somaTensao / historico.length;
+            const mediaBpm = somaBpm / historico.length;
             const minutos = Math.floor(tempoDecorrido / 60);
             const segundos = Math.floor(tempoDecorrido % 60);
 
             const relatorio = `
-        ════════════════════════════════════════════════════════
-          🔬 RELATÓRIO FORENSE (68 PONTOS)
-        ════════════════════════════════════════════════════════
-        ✅ Média de VERDADE: ${mediaVerdade.toFixed(1)}%
-        ❌ Média de MENTIRA: ${mediaMentira.toFixed(1)}%
-        📈 Pico de VERDADE: ${picoVerdade.toFixed(1)}%
-        📉 Pico de MENTIRA: ${picoMentira.toFixed(1)}%
-        👁️ TOTAL DE PISCADAS: ${piscadas}
-        ⏱️ TEMPO: ${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}
-        ════════════════════════════════════════════════════════
-        `;
+════════════════════════════════════════════════════════
+  🔬 RELATÓRIO — SCANNER BIOMÉTRICO
+════════════════════════════════════════════════════════
+ ✅ Média de VERDADE ......... ${mediaVerdade.toFixed(1)}%
+ ❌ Média de MENTIRA ......... ${mediaMentira.toFixed(1)}%
+ 📈 Pico de VERDADE .......... ${picoVerdade.toFixed(1)}%
+ 📉 Pico de MENTIRA .......... ${picoMentira.toFixed(1)}%
+ 📊 Tensão facial média ...... ${mediaTensao.toFixed(1)}%
+ 🫀 BPM médio (estimado) ..... ${mediaBpm.toFixed(0)}
+ 👁️ Total de piscadas ........ ${piscadas}
+ ⏱️ Tempo de análise ......... ${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}
+════════════════════════════════════════════════════════
+   Resultado gerado por brincadeira — sem valor forense.
+════════════════════════════════════════════════════════
+`;
 
-            const janela = window.open('', '_blank', 'width=700,height=500');
-            janela.document.write(`<html><head><title>Relatório</title><style>body{background:#0a0a0a;color:#00ffcc;font-family:'Courier New', monospace;padding:30px;white-space:pre-wrap;}</style></head><body><pre>${relatorio}</pre></body></html>`);
+            const janela = window.open('', '_blank', 'width=720,height=560');
+            janela.document.write(`<html><head><title>Relatório</title><style>body{background:#07090a;color:#00ffcc;font-family:'Share Tech Mono','Courier New',monospace;padding:30px;white-space:pre-wrap;}</style></head><body><pre>${relatorio}</pre></body></html>`);
             janela.document.close();
 
             btnRelatorio.disabled = true;
@@ -517,7 +661,7 @@
 
         resizeCanvas();
         resizeAudioCanvas();
-        console.log('📡 Sistema 68 Pontos pronto.');
+        console.log('📡 Scanner pronto — aguardando início.');
     </script>
 
 </body>
