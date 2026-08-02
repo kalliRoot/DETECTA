@@ -3,24 +3,21 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DETECTA — Analisador Forense (Estilo 68 Pontos)</title>
+    <title>DETECTA — 68 Pontos (Estilo Foto 2)</title>
 
-    <!-- TROCAMOS A BIBLIOTECA PARA A VERSÃO DE 68 PONTOS (FACIAL LANDMARKS) -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm/vision_bundle.js" crossorigin="anonymous">
+    <!-- Importando a versão clássica e estável do MediaPipe -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous">
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous">
     </script>
 
     <style>
         /* ============================================================
            ESTILO FORENSE / CSI
            ============================================================ */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: #0a0a0a;
             display: flex;
@@ -30,7 +27,6 @@
             font-family: 'Courier New', monospace;
             padding: 20px;
         }
-
         .container {
             background: #111;
             border: 1px solid #00ffcc44;
@@ -40,7 +36,6 @@
             width: 100%;
             box-shadow: 0 0 60px rgba(0, 255, 200, 0.05);
         }
-
         .header {
             display: flex;
             justify-content: space-between;
@@ -49,246 +44,64 @@
             padding-bottom: 10px;
             margin-bottom: 15px;
         }
-
-        .header h1 {
-            color: #00ffcc;
-            font-size: 18px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            font-weight: 300;
-        }
-
-        .header .badge {
-            color: #ff3366;
-            font-size: 12px;
-            border: 1px solid #ff336644;
-            padding: 4px 12px;
-            border-radius: 20px;
-            letter-spacing: 1px;
-        }
-
-        .video-wrapper {
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-            border: 1px solid #00ffcc33;
-            max-width: 640px;
-            margin: 0 auto;
-            aspect-ratio: 4 / 3;
-        }
-
-        #webcam {
-            width: 100%;
-            height: 100%;
-            display: block;
-            object-fit: cover;
-            transform: scaleX(-1);
-            background: #000;
-        }
-
-        #overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            transform: scaleX(-1);
-        }
-
-        .audio-visualizer {
-            max-width: 640px;
-            margin: 10px auto 0;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #0a0a0a;
-            border: 1px solid #00ffcc33;
-            height: 50px;
-        }
-
-        #audioCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .stat-box {
-            background: #1a1a1a;
-            border: 1px solid #00ffcc33;
-            border-radius: 8px;
-            padding: 10px 12px;
-            text-align: center;
-        }
-
-        .stat-box .label {
-            color: #8899aa;
-            font-size: 10px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .stat-box .value {
-            color: #00ffcc;
-            font-size: 22px;
-            font-weight: bold;
-            margin-top: 4px;
-        }
-
-        .stat-box .value.verde {
-            color: #66ff99;
-        }
-        .stat-box .value.vermelho {
-            color: #ff3366;
-        }
-        .stat-box .value.amarelo {
-            color: #ffcc44;
-        }
-
-        .controls {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin: 15px 0;
-        }
-
+        .header h1 { color: #00ffcc; font-size: 18px; letter-spacing: 3px; text-transform: uppercase; font-weight: 300; }
+        .header .badge { color: #ff3366; font-size: 12px; border: 1px solid #ff336644; padding: 4px 12px; border-radius: 20px; letter-spacing: 1px; }
+        .video-wrapper { position: relative; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid #00ffcc33; max-width: 640px; margin: 0 auto; aspect-ratio: 4 / 3; }
+        #webcam { width: 100%; height: 100%; display: block; object-fit: cover; transform: scaleX(-1); background: #000; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; transform: scaleX(-1); }
+        .audio-visualizer { max-width: 640px; margin: 10px auto 0; border-radius: 8px; overflow: hidden; background: #0a0a0a; border: 1px solid #00ffcc33; height: 50px; }
+        #audioCanvas { width: 100%; height: 100%; display: block; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
+        .stat-box { background: #1a1a1a; border: 1px solid #00ffcc33; border-radius: 8px; padding: 10px 12px; text-align: center; }
+        .stat-box .label { color: #8899aa; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+        .stat-box .value { color: #00ffcc; font-size: 22px; font-weight: bold; margin-top: 4px; }
+        .stat-box .value.verde { color: #66ff99; }
+        .stat-box .value.vermelho { color: #ff3366; }
+        .stat-box .value.amarelo { color: #ffcc44; }
+        .controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 15px 0; }
         .btn {
-            background: transparent;
-            border: 1px solid #00ffcc;
-            color: #00ffcc;
-            padding: 10px 24px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            letter-spacing: 2px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: 0.3s;
-            text-transform: uppercase;
-            min-width: 120px;
+            background: transparent; border: 1px solid #00ffcc; color: #00ffcc; padding: 10px 24px;
+            font-family: 'Courier New', monospace; font-size: 14px; letter-spacing: 2px; border-radius: 30px;
+            cursor: pointer; transition: 0.3s; text-transform: uppercase; min-width: 120px;
         }
-
-        .btn:hover {
-            background: #00ffcc22;
-            box-shadow: 0 0 30px #00ffcc33;
-        }
-
-        .btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .btn.vermelho {
-            border-color: #ff3366;
-            color: #ff3366;
-        }
-        .btn.vermelho:hover {
-            background: #ff336622;
-            box-shadow: 0 0 30px #ff336633;
-        }
-
-        .btn.amarelo {
-            border-color: #ffcc44;
-            color: #ffcc44;
-        }
-        .btn.amarelo:hover {
-            background: #ffcc4422;
-            box-shadow: 0 0 30px #ffcc4433;
-        }
-
-        .status-msg {
-            text-align: center;
-            font-size: 13px;
-            color: #8899aa;
-            letter-spacing: 1px;
-            padding: 8px;
-            border-top: 1px solid #00ffcc33;
-            margin-top: 10px;
-        }
-
-        .status-msg.verde {
-            color: #66ff99;
-        }
-        .status-msg.vermelho {
-            color: #ff3366;
-        }
-        .status-msg.amarelo {
-            color: #ffcc44;
-        }
-
-        @media (max-width: 700px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .header h1 {
-                font-size: 14px;
-            }
-        }
-
-        @media (max-width: 500px) {
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
-            }
-            .stat-box .value {
-                font-size: 18px;
-            }
-            .btn {
-                font-size: 12px;
-                padding: 8px 16px;
-                min-width: 80px;
-            }
-        }
+        .btn:hover { background: #00ffcc22; box-shadow: 0 0 30px #00ffcc33; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn.vermelho { border-color: #ff3366; color: #ff3366; }
+        .btn.vermelho:hover { background: #ff336622; box-shadow: 0 0 30px #ff336633; }
+        .btn.amarelo { border-color: #ffcc44; color: #ffcc44; }
+        .btn.amarelo:hover { background: #ffcc4422; box-shadow: 0 0 30px #ffcc4433; }
+        .status-msg { text-align: center; font-size: 13px; color: #8899aa; letter-spacing: 1px; padding: 8px; border-top: 1px solid #00ffcc33; margin-top: 10px; }
+        .status-msg.verde { color: #66ff99; }
+        .status-msg.vermelho { color: #ff3366; }
+        .status-msg.amarelo { color: #ffcc44; }
+        @media (max-width: 700px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .header h1 { font-size: 14px; } }
+        @media (max-width: 500px) { .stats-grid { grid-template-columns: 1fr 1fr; gap: 6px; } .stat-box .value { font-size: 18px; } .btn { font-size: 12px; padding: 8px 16px; min-width: 80px; } }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- HEADER -->
         <div class="header">
-            <h1>🕵️ DETECTA — ANALISADOR FORENSE</h1>
-            <span class="badge">v2.0 · 68 PONTOS</span>
+            <h1>🕵️ DETECTA — 68 PONTOS</h1>
+            <span class="badge">v2.0 · LIMPO</span>
         </div>
 
-        <!-- VÍDEO + OVERLAY -->
         <div class="video-wrapper">
             <video id="webcam" autoplay playsinline muted></video>
             <canvas id="overlay"></canvas>
         </div>
 
-        <!-- ÁUDIO VISUALIZER -->
         <div class="audio-visualizer">
             <canvas id="audioCanvas"></canvas>
         </div>
 
-        <!-- STATS -->
         <div class="stats-grid">
-            <div class="stat-box">
-                <div class="label">🎯 VERDADE</div>
-                <div class="value verde" id="porcentagem">--%</div>
-            </div>
-            <div class="stat-box">
-                <div class="label">❌ MENTIRA</div>
-                <div class="value vermelho" id="mentira">--%</div>
-            </div>
-            <div class="stat-box">
-                <div class="label">👁️ PISCADAS</div>
-                <div class="value amarelo" id="piscadas">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="label">⏱️ TEMPO</div>
-                <div class="value" id="tempo">00:00</div>
-            </div>
+            <div class="stat-box"><div class="label">🎯 VERDADE</div><div class="value verde" id="porcentagem">--%</div></div>
+            <div class="stat-box"><div class="label">❌ MENTIRA</div><div class="value vermelho" id="mentira">--%</div></div>
+            <div class="stat-box"><div class="label">👁️ PISCADAS</div><div class="value amarelo" id="piscadas">0</div></div>
+            <div class="stat-box"><div class="label">⏱️ TEMPO</div><div class="value" id="tempo">00:00</div></div>
         </div>
 
-        <!-- CONTROLES -->
         <div class="controls">
             <button class="btn" id="btnIniciar">▶ INICIAR TESTE</button>
             <button class="btn vermelho" id="btnEncerrar" disabled>⏹ ENCERRAR</button>
@@ -300,14 +113,9 @@
 
     <script>
         // ============================================================
-        //  SISTEMA FORENSE - 68 PONTOS (ESTILO DA SEGUNDA FOTO)
+        //  SISTEMA FORENSE - 68 PONTOS (ESTILO DA SEGUNDA FOTO - LIMPO E BRANCO)
         //  ============================================================
 
-        console.log('🔬 Sistema Forense de 68 Pontos carregado.');
-
-        // ============================================================
-        //  1. ELEMENTOS
-        //  ============================================================
         const video = document.getElementById('webcam');
         const overlay = document.getElementById('overlay');
         const ctx = overlay.getContext('2d');
@@ -324,17 +132,14 @@
         const btnEncerrar = document.getElementById('btnEncerrar');
         const btnRelatorio = document.getElementById('btnRelatorio');
 
-        // ============================================================
-        //  2. ESTADO
-        //  ============================================================
         let testando = false;
         let stream = null;
-        let faceLandmarker = null;
+        let faceMesh = null;
+        let camera = null;
         let audioContext = null;
         let analyser = null;
         let dataArray = null;
         let audioAnimId = null;
-        let camera = null;
 
         let historico = [];
         let piscadas = 0;
@@ -342,9 +147,6 @@
         let tempoInicio = 0;
         let tempoDecorrido = 0;
 
-        // ============================================================
-        //  3. REDIMENSIONAR CANVAS
-        //  ============================================================
         function resizeCanvas() {
             const rect = overlay.parentElement.getBoundingClientRect();
             overlay.width = rect.width;
@@ -356,224 +158,171 @@
             audioCanvas.width = rect.width;
             audioCanvas.height = rect.height;
         }
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-            resizeAudioCanvas();
-        });
+        window.addEventListener('resize', () => { resizeCanvas(); resizeAudioCanvas(); });
 
-        // ============================================================
-        //  4. GERAR PORCENTAGEM (MANTIDO DO SEU CÓDIGO ORIGINAL)
-        //  ============================================================
         function calcularPorcentagem(volume) {
             let base = Math.floor(Math.random() * 50) + 30;
-            if (volume > 0.6) {
-                base = Math.max(10, base - (volume * 30));
-            } else if (volume < 0.2) {
-                base = Math.min(90, base + 20);
-            }
+            if (volume > 0.6) base = Math.max(10, base - (volume * 30));
+            else if (volume < 0.2) base = Math.min(90, base + 20);
             const variacao = Math.floor(Math.random() * 10) - 5;
             return Math.min(95, Math.max(5, base + variacao));
         }
 
         // ============================================================
-        //  5. FUNÇÃO DE DESENHO ESTILO "FOTO 2" (LINHAS BRANCAS, POUCOS PONTOS)
+        //  FUNÇÃO DE DESENHO - ESTILO FOTO 2 (APENAS OS 68 PONTOS)
         //  ============================================================
         function desenharMalhaBranca(landmarks, width, height) {
             if (!landmarks) return;
 
-            // Ajusta coordenadas para o tamanho do canvas
-            const getPoint = (index) => {
-                const lm = landmarks[index];
-                if(!lm) return null;
-                return { x: lm.x * width, y: lm.y * height };
-            };
+            // 1. Ajustar coordenadas dos 68 pontos
+            const p = (i) => ({ x: landmarks[i].x * width, y: landmarks[i].y * height });
 
-            // Cor das linhas e pontos (Branco estilo foto 2)
-            const corLinha = 'rgba(255, 255, 255, 0.7)';
-            const corPonto = '#ffffff';
+            // Cores (Branco com leve transparência para ficar igual à foto 2)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 1.2;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.2)';
+            ctx.shadowBlur = 3;
 
-            ctx.lineWidth = 1.5;
-            ctx.strokeStyle = corLinha;
-            ctx.shadowColor = 'rgba(255,255,255,0.2)';
-            ctx.shadowBlur = 4;
-
-            // Função auxiliar para desenhar uma linha
-            const desenharLinha = (p1, p2) => {
-                if (!p1 || !p2) return;
+            // Função para ligar vários pontos em linha
+            const conectar = (indices) => {
                 ctx.beginPath();
-                ctx.moveTo(p1.x, p1.y);
-                ctx.lineTo(p2.x, p2.y);
+                ctx.moveTo(p(indices[0]).x, p(indices[0]).y);
+                for(let i=1; i<indices.length; i++) ctx.lineTo(p(indices[i]).x, p(indices[i]).y);
                 ctx.stroke();
             };
 
-            // Função auxiliar para desenhar vários pontos conectados
-            const desenharContorno = (indices) => {
-                ctx.beginPath();
-                let pts = indices.map(i => getPoint(i)).filter(p => p !== null);
-                if(pts.length === 0) return;
-                ctx.moveTo(pts[0].x, pts[0].y);
-                for(let i=1; i<pts.length; i++) {
-                    ctx.lineTo(pts[i].x, pts[i].y);
-                }
-                ctx.stroke();
-            };
-
-            // --- INDICES DOS 68 PONTOS (Estrutura da sua segunda foto) ---
-            
-            // 1. Contorno da Mandíbula (Linha do queixo)
-            const mandibula = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
-            desenharContorno(mandibula);
-
-            // 2. Sobrancelha Esquerda
-            const sobrancelhaE = [17,18,19,20,21];
-            desenharContorno(sobrancelhaE);
-
-            // 3. Sobrancelha Direita
-            const sobrancelhaD = [22,23,24,25,26];
-            desenharContorno(sobrancelhaD);
-
-            // 4. Olho Esquerdo
-            const olhoE = [36,37,38,39,40,41];
-            desenharContorno(olhoE);
-
-            // 5. Olho Direito
-            const olhoD = [42,43,44,45,46,47];
-            desenharContorno(olhoD);
-
-            // 6. Nariz (Asas e Ponte)
-            const nariz = [27,28,29,30,31,32,33,34,35];
-            desenharContorno(nariz);
-            // Linha central do nariz (do topo até a ponta)
-            const p27 = getPoint(27);
-            const p30 = getPoint(30);
-            desenharLinha(p27, p30);
-
-            // 7. Boca externa (Lábios)
-            const bocaExterna = [48,49,50,51,52,53,54,55,56,57,58,59];
-            desenharContorno(bocaExterna);
-
-            // 8. Boca interna (Lábios abertos)
-            const bocaInterna = [60,61,62,63,64,65,66,67];
-            desenharContorno(bocaInterna);
-
-            // --- DESENHAR OS PONTINHOS BRANCOS (Círculos) ---
-            ctx.shadowBlur = 6;
-            ctx.fillStyle = corPonto;
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 1;
-
-            // Desenha um pontinho em cada um dos 68 pontos
-            for (let i = 0; i < 68; i++) {
-                const pt = getPoint(i);
-                if (pt) {
+            // Função para desenhar os pontinhos brancos
+            const pontos = (indices) => {
+                ctx.shadowBlur = 5;
+                ctx.fillStyle = '#ffffff';
+                for(let i of indices) {
+                    let pt = p(i);
                     ctx.beginPath();
-                    ctx.arc(pt.x, pt.y, 2.5, 0, 2 * Math.PI);
+                    ctx.arc(pt.x, pt.y, 2, 0, 2 * Math.PI);
                     ctx.fill();
-                    ctx.stroke();
                 }
-            }
+                ctx.shadowBlur = 3;
+            };
+
+            // Índices oficiais dos 68 pontos faciais
+            const mandibula = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+            const sobrancelhaE = [17,18,19,20,21];
+            const sobrancelhaD = [22,23,24,25,26];
+            const olhoE = [36,37,38,39,40,41];
+            const olhoD = [42,43,44,45,46,47];
+            const nariz = [27,28,29,30,31,32,33,34,35];
+            const bocaExt = [48,49,50,51,52,53,54,55,56,57,58,59];
+            const bocaInt = [60,61,62,63,64,65,66,67];
+
+            // Desenha os Contornos
+            conectar(mandibula);
+            conectar(sobrancelhaE);
+            conectar(sobrancelhaD);
+            conectar(olhoE);
+            conectar(olhoD);
+            conectar(nariz);
+            conectar(bocaExt);
+            conectar(bocaInt);
+
+            // Linha central do nariz (Ponto 27 ao 30) - É assim na foto 2
+            ctx.beginPath();
+            ctx.moveTo(p(27).x, p(27).y);
+            ctx.lineTo(p(30).x, p(30).y);
+            ctx.stroke();
+
+            // Desenha os pontinhos
+            pontos(mandibula);
+            pontos(sobrancelhaE);
+            pontos(sobrancelhaD);
+            pontos(olhoE);
+            pontos(olhoD);
+            pontos(nariz);
+            pontos(bocaExt);
+            pontos(bocaInt);
+
+            ctx.shadowBlur = 0; // Resetar para não afetar o frame seguinte
         }
 
         // ============================================================
-        //  6. DETECTAR PISCADA (Baseado nos 68 pontos)
+        //  DETECÇÃO DE PISCADA (Baseado nos 68 pontos)
         //  ============================================================
         function detectarPiscada68(landmarks) {
-            // Olho esquerdo: pontos 37 (canto sup) e 41 (canto inf)
-            // Olho direito: pontos 43 (canto sup) e 47 (canto inf)
-            const olhoE_sup = landmarks[37];
-            const olhoE_inf = landmarks[41];
-            const olhoD_sup = landmarks[43];
-            const olhoD_inf = landmarks[47];
-
-            if (!olhoE_sup || !olhoE_inf || !olhoD_sup || !olhoD_inf) return false;
-
-            const distE = Math.abs(olhoE_sup.y - olhoE_inf.y);
-            const distD = Math.abs(olhoD_sup.y - olhoD_inf.y);
-
-            // Se a distância vertical dos olhos for muito pequena, está piscando
+            if(!landmarks[37] || !landmarks[41] || !landmarks[43] || !landmarks[47]) return false;
+            // Distância vertical dos olhos
+            const distE = Math.abs(landmarks[37].y - landmarks[41].y);
+            const distD = Math.abs(landmarks[43].y - landmarks[47].y);
             return (distE < 0.015 || distD < 0.015);
         }
 
         // ============================================================
-        //  7. PROCESSAR FRAME (NOVA BIBLIOTECA)
+        //  PROCESSADOR DO MEDIAPIPE (FACE MESH)
         //  ============================================================
-        async function processarFrame() {
-            if (!testando || !faceLandmarker) return;
+        function onResults(results) {
+            if (!testando) return;
 
-            try {
-                // Envia o vídeo para o FaceLandmarker
-                const results = await faceLandmarker.detect(video);
-                
-                const width = overlay.width;
-                const height = overlay.height;
-                ctx.clearRect(0, 0, width, height);
+            const width = overlay.width;
+            const height = overlay.height;
+            ctx.clearRect(0, 0, width, height);
 
-                if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-                    // O FaceLandmarker retorna 478 pontos, mas queremos os 68 primeiros para o estilo da sua foto
-                    const landmarks = results.faceLandmarks[0].slice(0, 68); 
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                // O FaceMesh retorna 468 pontos, mas os 68 primeiros são os que queremos
+                const landmarks = results.multiFaceLandmarks[0].slice(0, 68);
 
-                    let volume = 0;
-                    if (analyser && dataArray) {
-                        analyser.getByteFrequencyData(dataArray);
-                        let soma = 0;
-                        for (let i = 0; i < dataArray.length; i++) soma += dataArray[i];
-                        volume = (soma / dataArray.length) / 255;
-                    }
+                let volume = 0;
+                if (analyser && dataArray) {
+                    analyser.getByteFrequencyData(dataArray);
+                    let soma = 0;
+                    for (let i = 0; i < dataArray.length; i++) soma += dataArray[i];
+                    volume = (soma / dataArray.length) / 255;
+                }
 
-                    const pct = calcularPorcentagem(volume);
-                    const mentiraPct = 100 - pct;
-                    spanPorcentagem.textContent = Math.round(pct) + '%';
-                    spanMentira.textContent = Math.round(mentiraPct) + '%';
+                const pct = calcularPorcentagem(volume);
+                const mentiraPct = 100 - pct;
+                spanPorcentagem.textContent = Math.round(pct) + '%';
+                spanMentira.textContent = Math.round(mentiraPct) + '%';
 
-                    const fechado = detectarPiscada68(landmarks);
-                    if (fechado && !ultimoEstadoOlho) {
-                        piscadas++;
-                        spanPiscadas.textContent = piscadas;
-                    }
-                    ultimoEstadoOlho = fechado;
+                const fechado = detectarPiscada68(landmarks);
+                if (fechado && !ultimoEstadoOlho) {
+                    piscadas++;
+                    spanPiscadas.textContent = piscadas;
+                }
+                ultimoEstadoOlho = fechado;
 
-                    // DESENHA A MALHA DA SEGUNDA FOTO AQUI
-                    desenharMalhaBranca(landmarks, width, height);
+                // DESENHA O ESTILO DA FOTO 2 (LIMPO E BRANCO)
+                desenharMalhaBranca(landmarks, width, height);
 
-                    historico.push({
-                        tempo: Date.now() - tempoInicio,
-                        verdade: pct,
-                        mentira: mentiraPct,
-                        volume: volume,
-                        piscadas: piscadas
-                    });
+                historico.push({
+                    tempo: Date.now() - tempoInicio,
+                    verdade: pct,
+                    mentira: mentiraPct,
+                    volume: volume,
+                    piscadas: piscadas
+                });
 
-                    if (pct > 70) {
-                        statusMsg.textContent = '✅ ALTA PROBABILIDADE DE VERDADE';
-                        statusMsg.className = 'status-msg verde';
-                    } else if (pct < 35) {
-                        statusMsg.textContent = '⚠️ ALTA PROBABILIDADE DE MENTIRA';
-                        statusMsg.className = 'status-msg vermelho';
-                    } else {
-                        statusMsg.textContent = '🔍 ANÁLISE INCONCLUSIVA';
-                        statusMsg.className = 'status-msg amarelo';
-                    }
-
-                    tempoDecorrido = (Date.now() - tempoInicio) / 1000;
-                    const mins = Math.floor(tempoDecorrido / 60);
-                    const segs = Math.floor(tempoDecorrido % 60);
-                    spanTempo.textContent = `${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-
+                if (pct > 70) {
+                    statusMsg.textContent = '✅ ALTA PROBABILIDADE DE VERDADE';
+                    statusMsg.className = 'status-msg verde';
+                } else if (pct < 35) {
+                    statusMsg.textContent = '⚠️ ALTA PROBABILIDADE DE MENTIRA';
+                    statusMsg.className = 'status-msg vermelho';
                 } else {
-                    statusMsg.textContent = '👤 NENHUM ROSTO DETECTADO';
+                    statusMsg.textContent = '🔍 ANÁLISE INCONCLUSIVA';
                     statusMsg.className = 'status-msg amarelo';
                 }
-            } catch (e) {
-                // Erros silenciosos para não travar o loop
-            }
 
-            if (testando) {
-                requestAnimationFrame(processarFrame);
+                tempoDecorrido = (Date.now() - tempoInicio) / 1000;
+                const mins = Math.floor(tempoDecorrido / 60);
+                const segs = Math.floor(tempoDecorrido % 60);
+                spanTempo.textContent = `${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
+
+            } else {
+                statusMsg.textContent = '👤 NENHUM ROSTO DETECTADO';
+                statusMsg.className = 'status-msg amarelo';
             }
         }
 
         // ============================================================
-        //  8. DESENHAR ÁUDIO (IGUAL AO SEU)
+        //  ÁUDIO
         //  ============================================================
         function desenharAudio() {
             const width = audioCanvas.width;
@@ -616,19 +365,6 @@
             ctxAudio.shadowBlur = 15;
             ctxAudio.stroke();
 
-            ctxAudio.beginPath();
-            for (let i = 0; i < width; i++) {
-                const index = Math.min(i * step, dataArray.length - 1);
-                const valor = dataArray[index] / 255;
-                const y = height / 2 - (valor * (height / 2) * 0.8);
-                if (i === 0) ctxAudio.moveTo(i, y);
-                else ctxAudio.lineTo(i, y);
-            }
-            ctxAudio.strokeStyle = corBrilho;
-            ctxAudio.lineWidth = 6;
-            ctxAudio.shadowBlur = 30;
-            ctxAudio.stroke();
-
             let soma = 0;
             for (let i = 0; i < dataArray.length; i++) soma += dataArray[i];
             const vol = Math.round((soma / dataArray.length) / 255 * 100);
@@ -644,7 +380,7 @@
         }
 
         // ============================================================
-        //  9. INICIAR ANÁLISE
+        //  INICIAR
         //  ============================================================
         async function iniciarAnalise() {
             if (testando) return;
@@ -674,19 +410,28 @@
                 source.connect(analyser);
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-                // ============================================================
-                //  CARREGAR O NOVO MODELO DE 68 PONTOS
-                //  ============================================================
-                const vision = await FilesetResolver.forVisionTasks(
-                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
-                );
-                
-                faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-                    baseOptions: {
-                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-                    },
-                    runningMode: "VIDEO"
+                // INICIALIZA O FACEMESH (MUITO MAIS ESTÁVEL)
+                faceMesh = new FaceMesh({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
                 });
+
+                faceMesh.setOptions({
+                    maxNumFaces: 1,
+                    refineLandmarks: true,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+
+                faceMesh.onResults(onResults);
+
+                camera = new Camera(video, {
+                    onFrame: async () => {
+                        try { await faceMesh.send({image: video}); } catch (e) {}
+                    },
+                    width: 640,
+                    height: 480
+                });
+                await camera.start();
 
                 testando = true;
                 btnIniciar.disabled = true;
@@ -697,9 +442,6 @@
 
                 if (audioAnimId) cancelAnimationFrame(audioAnimId);
                 desenharAudio();
-                
-                // Inicia o loop de processamento
-                processarFrame();
 
                 console.log('✅ Análise 68 Pontos iniciada!');
 
@@ -713,7 +455,7 @@
         }
 
         // ============================================================
-        //  10. ENCERRAR E RELATÓRIO (Mesmo código seu)
+        //  ENCERRAR E RELATÓRIO
         //  ============================================================
         function encerrarAnalise() {
             testando = false;
@@ -731,7 +473,8 @@
             if (audioContext && audioContext.state !== 'closed') { audioContext.close().catch(() => {}); audioContext = null; analyser = null; dataArray = null; }
             if (stream) { stream.getTracks().forEach(track => track.stop()); stream = null; }
             if (video.srcObject) { video.srcObject = null; }
-            faceLandmarker = null;
+            if (camera) { camera.stop(); camera = null; }
+            faceMesh = null;
         }
 
         function gerarRelatorio() {
@@ -768,16 +511,10 @@
             btnIniciar.disabled = false;
         }
 
-        // ============================================================
-        //  11. EVENTOS
-        //  ============================================================
         btnIniciar.addEventListener('click', iniciarAnalise);
         btnEncerrar.addEventListener('click', encerrarAnalise);
         btnRelatorio.addEventListener('click', gerarRelatorio);
 
-        // ============================================================
-        //  12. INICIALIZAÇÃO
-        //  ============================================================
         resizeCanvas();
         resizeAudioCanvas();
         console.log('📡 Sistema 68 Pontos pronto.');
